@@ -161,7 +161,10 @@
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
 <script>
   // Payload Pix completo recebido do usuário
-  const pixPayloadBase = "00020126360014br.gov.bcb.pix0114+5562996761383520400005303986540512.005802BR5923Emerson Charles Gabriel6008Brasilia62230519daqr45453119266870863040415";
+  // const pixPayloadBase = "00020126360014br.gov.bcb.pix0114+5562996761383520400005303986540512.005802BR5923Emerson Charles Gabriel6008Brasilia62230519daqr45453119266870863040415";
+
+  // Test payload string for debugging
+  const pixPayloadBase = "Hello World";
 
   const form = document.getElementById("pedidoForm");
   const btnGerarPix = document.getElementById("btnGerarPix");
@@ -211,6 +214,7 @@
     QRCode.toCanvas(qrcodeDiv, pixPayloadBase, {width:250}, function (error) {
       if (error) {
         alert("Erro ao gerar QR Code Pix.");
+        console.error(error);
         return;
       }
       pixInfo.textContent = "Chave Pix: +55 62 99676-1383  - Valor fixo do almoço";
@@ -237,4 +241,3 @@
 </script>
 </body>
 </html>
-
