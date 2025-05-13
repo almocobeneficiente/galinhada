@@ -127,7 +127,7 @@
 <h1>Almoço Beneficiente</h1>
 <p class="subtitle">Faça seu pedido e pague no Pix</p>
 
-<form id="pedidoForm" action="https://formspree.io/f/xwkyqgje" method="POST" target="_blank" novalidate>
+<form id="pedidoForm" novalidate>
   <label for="nome">Nome completo</label>
   <input type="text" id="nome" name="Nome" required placeholder="Seu nome" autocomplete="name" />
 
@@ -143,11 +143,8 @@
     <option value="Vegetariano">Vegetariano</option>
   </select>
 
-  <input type="hidden" name="_subject" value="Novo pedido de Almoço Beneficiente" />
-  <input type="hidden" name="_captcha" value="false" />
-
   <button id="btnGerarPix" type="button" disabled>Gerar QR Code Pix</button>
-  <button id="btnEnviar" type="submit" disabled>Enviar Pedido</button>
+  <button id="btnEnviar" type="button" disabled>Enviar Pedido</button>
 </form>
 
 <div id="qrCodeContainer" style="display:none;">
@@ -160,7 +157,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
 <script>
-  // Payload Pix completo recebido do usuário
   const pixPayloadBase = "Hello World";
 
   const form = document.getElementById("pedidoForm");
@@ -170,7 +166,6 @@
   const qrcodeDiv = document.getElementById("qrcode");
   const pixInfo = document.getElementById("pixInfo");
 
-  // Função para validar formulário (nome, telefone e prato)
   function validarForm() {
     const nome = form.nome.value.trim();
     const telefone = form.telefone.value.trim();
@@ -188,7 +183,6 @@
     return false;
   }
 
-  // Habilita ou desabilita os botões conforme validacao dos campos
   function atualizarBotoes() {
     if(validarForm()){
       btnGerarPix.disabled = false;
@@ -202,11 +196,7 @@
     }
   }
 
-  // Gera o QR Code Pix e habilita botão para enviar
   btnGerarPix.addEventListener("click", () => {
-    // Para simplificar neste exemplo vamos usar o payload fixo que você deu
-    // Caso queira implementar valor dinâmico, seria necessário gerar payload Pix dinamicamente
-
     qrcodeDiv.innerHTML = "";
     QRCode.toDataURL(pixPayloadBase, {width:250}, function (error, url) {
       if (error) {
@@ -224,21 +214,47 @@
     });
   });
 
-  // Atualiza botões toda vez que form muda
-  form.addEventListener("input", () => {
-    atualizarBotoes();
+  btnEnviar.addEventListener("click", () => {
+    if (!validarForm()) {
+      alert("Por favor, preencha todos os campos corretamente antes de enviar.");
+      return;
+    }
+
+    const pedido = {
+      Nome: form.nome.value.trim(),
+      Telefone: form.telefone.value.trim(),
+      Prato: form.prato.value
+    };
+
+    fetch("https://seusprecos.com.br/agenda/pedido_endpoint.php", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(pedido)
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        alert("Pedido enviado com sucesso!");
+        form.reset();
+        qrCodeContainer.style.display = "none";
+        qrcodeDiv.innerHTML = "";
+        pixInfo.textContent = "";
+        atualizarBotoes();
+      } else {
+        alert("Erro ao enviar pedido: " + (data.error || "Erro desconhecido"));
+      }
+    })
+    .catch(error => {
+      alert("Erro na comunicação com o servidor.");
+      console.error(error);
+    });
   });
 
-  // Na submissão, mostrar mensagem para o usuário confirmando envio
-  form.addEventListener("submit", (e) => {
-    alert(
-      "Pedido enviado! Verifique seu app bancário para o pagamento via Pix."
-    );
-  });
+  form.addEventListener("input", atualizarBotoes);
 
-  // Iniciar estado dos botões
   atualizarBotoes();
 </script>
 </body>
 </html>
-
