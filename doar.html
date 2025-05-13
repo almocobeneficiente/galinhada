@@ -7,52 +7,18 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
         * { box-sizing: border-box; }
-        body {
-            margin: 0;
-            font-family: 'Montserrat', sans-serif;
-            background: linear-gradient(135deg, #e0f7e9, #b2ebf2);
-            color: #333;
-            max-width: 350px;
-            margin-left: auto;
-            margin-right: auto;
-            padding: 16px;
-            height: 600px;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
+        body { margin: 0; font-family: 'Montserrat', sans-serif; background: linear-gradient(135deg, #e0f7e9, #b2ebf2); color: #333; max-width: 350px; margin-left: auto; margin-right: auto; padding: 16px; height: 600px; overflow: hidden; display: flex; flex-direction: column; }
         h1 { text-align: center; color: #388e3c; margin-top: 0; margin-bottom: 8px; }
         p.subtitle { text-align: center; font-weight: 600; color: #2e7d32; margin-top: 0; margin-bottom: 24px; }
         form { flex-grow: 1; overflow-y: auto; padding-right: 8px; }
         label { display: block; margin-bottom: 6px; font-weight: 600; color: #1b5e20; }
-        input[type="text"], input[type="tel"] {
-            width: 100%;
-            padding: 10px;
-            font-size: 1rem;
-            border: 2px solid #388e3c;
-            border-radius: 6px;
-            background-color: #f1f8e9;
-            margin-bottom: 16px;
-            transition: border-color 0.25s;
-        }
-        input[type="text"]:focus, input[type="tel"]:focus {
-            border-color: #66bb6a; outline: none;
-        }
-        button {
-            width: 100%;
-            padding: 14px;
-            background-color: #388e3c;
-            color: white;
-            font-size: 1.1rem;
-            font-weight: 700;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
+        input[type="text"], input[type="tel"] { width: 100%; padding: 10px; font-size: 1rem; border: 2px solid #388e3c; border-radius: 6px; background-color: #f1f8e9; margin-bottom: 16px; transition: border-color 0.25s; }
+        input[type="text"]:focus, input[type="tel"]:focus { border-color: #66bb6a; outline: none; }
+        button { width: 100%; padding: 14px; background-color: #388e3c; color: white; font-size: 1.1rem; font-weight: 700; border: none; border-radius: 8px; cursor: pointer; transition: background-color 0.3s ease; }
         button:hover:not(:disabled) { background-color: #66bb6a; }
         button:disabled { background-color: #a5d6a7; cursor: not-allowed; }
         .footer { text-align: center; font-size: 0.8rem; color: #4caf50; margin-top: 8px; }
+        #qrcode { margin-top: 20px; text-align: center; }
     </style>
 </head>
 <body>
@@ -63,64 +29,21 @@
         <input type="text" id="nome" name="Nome" required placeholder="Seu nome" autocomplete="name" />
         <label for="telefone">Telefone (WhatsApp)</label>
         <input type="tel" id="telefone" name="Telefone" required placeholder="+55 (XX) XXXXX-XXXX" pattern="^\+55\s?\(?\d{2}\)?\s?\d{4,5}-?\d{4}$" title="Digite o telefone no formato +55 11 91234-5678" autocomplete="tel" />
-        <button id="btnDoar" type="button" disabled>Doar R$ 10,00</button>
+        
+        <!-- Botão para gerar QR Code -->
+        <button type="button" id="generateQRCode">Gerar QR Code</button>
     </form>
+    <div id="qrcode"></div>
     <div class="footer">Obrigado pela sua contribuição!</div>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
     <script>
-        const form = document.getElementById("doacaoForm");
-        const btnDoar = document.getElementById("btnDoar");
+        document.getElementById('generateQRCode').addEventListener('click', function() {
+            const nome = document.getElementById('nome').value;
+            const telefone = document.getElementById('telefone').value;
+            const paymentInfo = `Nome: ${nome}, Telefone: ${telefone}`;
+            
+            // Limpa o QR Code anterior
+            document.getElementById('qrcode').innerHTML = '';
 
-        function validarForm() {
-            const nome = form.nome.value.trim();
-            const telefone = form.telefone.value.trim();
-            const telRegex = /^\+55\s?\(?\d{2}\)?\s?\d{4,5}-?\d{4}$/;
-            return nome.length > 2 && telRegex.test(telefone);
-        }
-
-        function atualizarBotao() {
-            btnDoar.disabled = !validarForm();
-        }
-
-        form.addEventListener("input", atualizarBotao
-                );
-
-        btnDoar.addEventListener("click", () => {
-            if (!validarForm()) {
-                alert("Por favor, preencha todos os campos corretamente antes de doar.");
-                return;
-            }
-
-            const doacao = {
-                Nome: form.nome.value.trim(),
-                Telefone: form.telefone.value.trim(),
-                Valor: 10.00 // Valor fixo da doação
-            };
-
-            // Aqui você pode enviar a doação para o seu endpoint
-            fetch("https://seusprecos.com.br/agenda/doacao2_endpoint.php", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(doacao)
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert("Doação realizada com sucesso! Obrigado!");
-                    form.reset();
-                    atualizarBotao(); // Atualiza o estado do botão
-                } else {
-                    alert("Erro ao realizar a doação: " + (data.error || "Erro desconhecido"));
-                }
-            })
-            .catch(error => {
-                alert("Erro na comunicação com o servidor.");
-                console.error(error);
-            });
-        });
-
-        atualizarBotao(); // Inicializa o estado do botão
-    </script>
-</body>
-</html>
+            // Gera o QR Code
+            QRCode.toCanvas(document.getElementById
