@@ -66,25 +66,61 @@
         <button id="btnDoar" type="button" disabled>Doar R$ 10,00</button>
     </form>
     <div class="footer">Obrigado pela sua contribuição!</div>
-  <script>
-    const form = document.getElementById("doacaoForm");
-    const btnDoar = document.getElementById("btnDoar");
+    <script>
+        const form = document.getElementById("doacaoForm");
+        const btnDoar = document.getElementById("btnDoar");
 
-    function validarForm() {
-        const nome = form.nome.value.trim();
-        const telefone = form.telefone.value.trim();
-        const telRegex = /^\+55\s?\(?\d{2}\)?\s?\d{4,5}-?\d{4}$/;
-
-        const nomeValido = nome.length > 0;
-        const telefoneValido = telRegex.test(telefone);
-
-        if (nomeValido && telefoneValido) {
-            btnDoar.disabled = false;
-        } else {
-            btnDoar.disabled = true;
+        function validarForm() {
+            const nome = form.nome.value.trim();
+            const telefone = form.telefone.value.trim();
+            const telRegex = /^\+55\s?\(?\d{2}\)?\s?\d{4,5}-?\d{4}$/;
+            return nome.length > 2 && telRegex.test(telefone);
         }
-    }
 
-    form.nome.addEventListener("input", validarForm);
-    form.telefone.addEventListener("input", validarForm);
-</script>
+        function atualizarBotao() {
+            btnDoar.disabled = !validarForm();
+        }
+
+        form.addEventListener("input", atualizarBotao
+                );
+
+        btnDoar.addEventListener("click", () => {
+            if (!validarForm()) {
+                alert("Por favor, preencha todos os campos corretamente antes de doar.");
+                return;
+            }
+
+            const doacao = {
+                Nome: form.nome.value.trim(),
+                Telefone: form.telefone.value.trim(),
+                Valor: 10.00 // Valor fixo da doação
+            };
+
+            // Aqui você pode enviar a doação para o seu endpoint
+            fetch("https://seusprecos.com.br/agenda/doacao_endpoint.php", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(doacao)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Doação realizada com sucesso! Obrigado!");
+                    form.reset();
+                    atualizarBotao(); // Atualiza o estado do botão
+                } else {
+                    alert("Erro ao realizar a doação: " + (data.error || "Erro desconhecido"));
+                }
+            })
+            .catch(error => {
+                alert("Erro na comunicação com o servidor.");
+                console.error(error);
+            });
+        });
+
+        atualizarBotao(); // Inicializa o estado do botão
+    </script>
+</body>
+</html>
